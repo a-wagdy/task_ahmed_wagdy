@@ -3,9 +3,7 @@
 namespace App\Controller;
 
 use App\PaymentGatewayFactory;
-use App\PaymentGateway\AciGateway;
 use App\DTO\PaymentGatewayInputDto;
-use App\PaymentGateway\Shift4Gateway;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,8 +13,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 final class PaymentGatewayController extends AbstractController
 {
     public function __construct(
-        private readonly AciGateway $aciGateway,
-        private readonly Shift4Gateway $shift4Gateway,
         private readonly PaymentGatewayFactory $gatewayFactory,
     ) {
     }
