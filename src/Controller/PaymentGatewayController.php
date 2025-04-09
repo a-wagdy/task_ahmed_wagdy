@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\PaymentGatewayFactory;
 use App\PaymentGateway\AciGateway;
 use App\DTO\PaymentGatewayInputDto;
 use App\PaymentGateway\Shift4Gateway;
@@ -16,6 +17,7 @@ final class PaymentGatewayController extends AbstractController
     public function __construct(
         private readonly AciGateway $aciGateway,
         private readonly Shift4Gateway $shift4Gateway,
+        private readonly PaymentGatewayFactory $gatewayFactory,
     ) {
     }
 
@@ -38,13 +40,9 @@ final class PaymentGatewayController extends AbstractController
         }
 
         try {
-            $gatewayService = match ($gateway) {
-                'shift4' => $this->shift4Gateway,
-                'aci' => $this->aciGateway,
-                default => throw $this->createNotFoundException('Gateway not found'),
-            };
+            $paymentGateway = $this->gatewayFactory->get($gateway);
 
-            $dto = $gatewayService->processPayment($paymentRequest);
+            $dto = $paymentGateway->processPayment($paymentRequest);
 
             return new JsonResponse([
                 'transactionId' => $dto->getTransactionId(),
