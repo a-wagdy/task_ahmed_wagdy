@@ -26,7 +26,7 @@ class PaymentGatewayInputDto
         min: 13,
         max: 19,
     )]
-    public ?int $cardNumber;
+    public ?string $cardNumber;
 
     #[Assert\NotBlank]
     public ?int $cardExpYear;
@@ -44,5 +44,5 @@ class PaymentGatewayInputDto
         min: 3,
         max: 4,
     )]
-    public ?int $cardCvv;
+    public ?string $cardCvv;
 }
