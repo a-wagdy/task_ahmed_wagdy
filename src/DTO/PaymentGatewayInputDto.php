@@ -15,21 +15,21 @@ class PaymentGatewayInputDto
         pattern: '/^\d+(\.\d{1,2})?$/',
         message: 'The amount can have at most 2 digits after the decimal point.'
     )]
-    public ?float $amount;
+    public float $amount;
 
     #[Assert\NotBlank]
     #[Assert\Currency]
-    public ?string $currency;
+    public string $currency;
 
     #[Assert\NotBlank]
     #[Assert\Length(
         min: 13,
         max: 19,
     )]
-    public ?string $cardNumber;
+    public string $cardNumber;
 
     #[Assert\NotBlank]
-    public ?int $cardExpYear;
+    public string $cardExpYear;
 
     #[Assert\NotBlank]
     #[Assert\Length(2)]
@@ -37,12 +37,9 @@ class PaymentGatewayInputDto
         min: 1,
         max: 12
     )]
-    public ?string $cardExpMonth;
+    public string $cardExpMonth;
 
     #[Assert\NotBlank]
-    #[Assert\Length(
-        min: 3,
-        max: 4,
-    )]
-    public ?string $cardCvv;
+    #[Assert\Length(3)]
+    public string $cardCvv;
 }
