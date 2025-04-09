@@ -30,8 +30,7 @@ final class PaymentGatewayController extends AbstractController
     ): JsonResponse {
         if ($this->isCardExpired((int) $paymentRequest->cardExpMonth, (int) $paymentRequest->cardExpYear)) {
             return new JsonResponse([
-                'code' => 'CARD_EXPIRED',
-                'message' => 'The card has expired'
+                'errors' => 'The card has expired'
             ], Response::HTTP_BAD_REQUEST);
         }
 

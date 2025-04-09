@@ -7,6 +7,7 @@ namespace App\EventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 class ExceptionListener
 {
@@ -14,19 +15,35 @@ class ExceptionListener
     {
         $exception = $event->getThrowable();
         $request = $event->getRequest();
+        $statusCode = $exception->getStatusCode();
 
-        if ($request->getContentTypeFormat() === 'json') {
-            // Check for HTTP exceptions and handle them
-            if ($exception instanceof HttpExceptionInterface) {
-                $statusCode = $exception->getStatusCode();
-                $message = $exception->getMessage();
-
+        if ($request->getContentTypeFormat() === 'json' && $exception instanceof HttpExceptionInterface) {
+            if ($exception->getPrevious() instanceof ValidationFailedException) {
+                $response = $this->handleValidationException($exception->getPrevious(), $statusCode);
+            } else {
                 $response = new JsonResponse([
-                    'error' => $message,
+                    'errors' => $exception->getMessage(),
                 ], $statusCode);
-
-                $event->setResponse($response);
             }
+
+            $event->setResponse($response);
         }
+    }
+
+    /**
+     * @param ValidationFailedException $validationErrors
+     * @param $statusCode
+     * @return JsonResponse
+     */
+    private function handleValidationException(ValidationFailedException $validationErrors, $statusCode): JsonResponse
+    {
+        $errors = [];
+        foreach ($validationErrors->getViolations() as $error) {
+            $errors[$error->getPropertyPath()] = $error->getMessage();
+        }
+
+        return new JsonResponse([
+            'errors' => $errors,
+        ], $statusCode);
     }
 }
