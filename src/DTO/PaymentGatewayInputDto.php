@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class PaymentGatewayInputDto
 {
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'The field amount is required')]
     #[Assert\Type('float')]
     #[Assert\Positive]
     #[Assert\Regex(
@@ -17,21 +17,21 @@ class PaymentGatewayInputDto
     )]
     public float $amount;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'The field currency is required')]
     #[Assert\Currency]
     public string $currency;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'The field cardNumber is required')]
     #[Assert\Length(
         min: 13,
         max: 19,
     )]
     public string $cardNumber;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'The field cardExpYear is required')]
     public string $cardExpYear;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'The field cardExpMonth is required')]
     #[Assert\Length(2)]
     #[Assert\Range(
         min: 1,
@@ -39,7 +39,7 @@ class PaymentGatewayInputDto
     )]
     public string $cardExpMonth;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'The field cardCvv is required')]
     #[Assert\Length(3)]
     public string $cardCvv;
 }
