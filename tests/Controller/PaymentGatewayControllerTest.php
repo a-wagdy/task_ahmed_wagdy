@@ -1,0 +1,238 @@
+<?php
+
+namespace App\Tests\Controller;
+
+use App\PaymentGateway\AciGateway;
+use App\DTO\PaymentGatewayResponseDto;
+use PHPUnit\Framework\MockObject\MockObject;
+use Symfony\Component\HttpFoundation\Response;
+use App\PaymentGateway\PaymentGatewayInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+final class PaymentGatewayControllerTest extends WebTestCase
+{
+    private KernelBrowser $client;
+    private PaymentGatewayInterface|MockObject $paymentGatewayMock;
+
+    protected static function getKernelClass(): string
+    {
+        return \App\Kernel::class;
+    }
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->paymentGatewayMock = $this->createMock(PaymentGatewayInterface::class);
+        self::getContainer()->set(AciGateway::class, $this->paymentGatewayMock);
+    }
+
+    public function testSuccessfulPayment(): void
+    {
+        $mockResponse = new PaymentGatewayResponseDto(
+            currency: 'USD',
+            transactionId: 'tx123',
+            createdAt: '2024-04-12 10:00:00',
+            amount: '100.00',
+            cardBin: '420000'
+        );
+
+        $this->paymentGatewayMock
+            ->expects($this->once())
+            ->method('processPayment')
+            ->willReturn($mockResponse)
+        ;
+
+        $this->callApiEndpoint('aci', [
+            'amount' => 100.00,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('+1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
+
+        $this->assertResponseIsSuccessful();
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertSame('tx123', $data['transactionId']);
+        $this->assertSame('100.00', $data['amount']);
+        $this->assertSame('USD', $data['currency']);
+        $this->assertSame('420000', $data['cardBin']);
+    }
+
+    /**
+     * @dataProvider invalidPayloadProvider
+     */
+    public function testValidationErrors(array $payload, array $expectedErrors): void
+    {
+        $this->callApiEndpoint('aci', $payload);
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('errors', $data);
+
+        foreach ($expectedErrors as $field => $errorMessage) {
+            $this->assertArrayHasKey($field, $data['errors']);
+            $this->assertStringContainsString($errorMessage, $data['errors'][$field]);
+        }
+    }
+
+    public function invalidPayloadProvider(): \Generator
+    {
+        yield 'Invalid amount (too many decimals)' => [
+            [
+                'amount' => 123.123,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['amount' => 'The value can have at most 2 digits after the decimal point']
+        ];
+
+        yield 'Negative amount' => [
+            [
+                'amount' => -100.00,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['amount' => 'The value can have at most 2 digits after the decimal point']
+        ];
+
+        yield 'Invalid currency' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'AAA',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['currency' => 'This value is not a valid currency']
+        ];
+
+        yield 'Invalid card number length' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'USD',
+                'cardNumber' => '420000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['cardNumber' => 'This value should have exactly 16 characters']
+        ];
+
+        yield 'Invalid CVV format' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '12',
+            ],
+            ['cardCvv' => 'The value must be 3 digits']
+        ];
+
+        yield 'Invalid expiration month' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '13',
+                'cardCvv' => '123',
+            ],
+            ['cardExpMonth' => 'This value should be between 1 and 12']
+        ];
+    }
+
+    public function testCallUnsupportedGateway(): void
+    {
+        $this->callApiEndpoint('unsupported', [
+            'amount' => 100.00,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('+1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertSame('Unsupported payment gateway: unsupported', $data['errors']);
+    }
+
+    public function testExpiredCard(): void
+    {
+        $this->callApiEndpoint('aci', [
+            'amount' => 100.00,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('-1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertSame('The card has expired', $data['errors']);
+    }
+
+    public function testMissingRequiredFields(): void
+    {
+        $this->callApiEndpoint('aci');
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertArrayHasKey('amount', $data['errors']);
+        $this->assertArrayHasKey('cardCvv', $data['errors']);
+        $this->assertArrayHasKey('currency', $data['errors']);
+        $this->assertArrayHasKey('cardNumber', $data['errors']);
+        $this->assertArrayHasKey('cardExpYear', $data['errors']);
+        $this->assertArrayHasKey('cardExpMonth', $data['errors']);
+    }
+
+    public function testInvalidJsonPayload(): void
+    {
+        $this->client->request(
+            method: 'POST',
+            uri: '/payment/gateway/aci',
+            server: [
+                'CONTENT_TYPE' => 'application/json'
+            ],
+            content: '{"amount": 100.00, "currency": "USD"' // Missing bracket
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('errors', $data);
+
+        $this->assertSame('Request payload contains invalid "json" data.', $data['errors']);
+    }
+
+    private function callApiEndpoint(string $paymentGateway, array $payload = []): void
+    {
+        $this->client->request(
+            method: 'POST',
+            uri: '/payment/gateway/' . $paymentGateway,
+            server: [
+                'CONTENT_TYPE' => 'application/json'
+            ],
+            content: json_encode($payload)
+        );
+    }
+}
