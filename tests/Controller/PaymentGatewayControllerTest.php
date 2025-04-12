@@ -4,6 +4,7 @@ namespace App\Tests\Controller;
 
 use App\PaymentGateway\AciGateway;
 use App\DTO\PaymentGatewayResponseDto;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -41,22 +42,14 @@ final class PaymentGatewayControllerTest extends WebTestCase
             ->willReturn($mockResponse)
         ;
 
-        $this->client->request(
-            method: 'POST',
-            uri: '/payment/gateway/aci',
-            server: [
-                'CONTENT_TYPE' => 'application/json'
-            ], 
-            content:
-            json_encode([
-                'amount' => 100.00,
-                'currency' => 'USD',
-                'cardNumber' => '4200000000000000',
-                'cardExpYear' => date('Y', strtotime('+1 year')),
-                'cardExpMonth' => '12',
-                'cardCvv' => '123',
-                ])
-            );
+        $this->callApiEndpoint('aci', [
+            'amount' => 100.00,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('+1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
 
         $this->assertResponseIsSuccessful();
         $data = json_decode($this->client->getResponse()->getContent(), true);
@@ -65,5 +58,70 @@ final class PaymentGatewayControllerTest extends WebTestCase
         $this->assertSame('100.00', $data['amount']);
         $this->assertSame('USD', $data['currency']);
         $this->assertSame('420000', $data['cardBin']);
+    }
+
+    public function testValidationErrors(): void
+    {
+        $this->callApiEndpoint('shift4', [
+            'amount' => 123.123,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('+1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertArrayHasKey('amount', $data['errors']);
+    }
+
+    public function testCallUnsupportedGateway(): void
+    {
+        $this->callApiEndpoint('unsupported', [
+            'amount' => 100.00,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('+1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertSame('Unsupported payment gateway: unsupported', $data['errors']);
+    }
+
+    public function testExpiredCard(): void
+    {
+        $this->callApiEndpoint('aci', [
+            'amount' => 100.00,
+            'currency' => 'USD',
+            'cardNumber' => '4200000000000000',
+            'cardExpYear' => date('Y', strtotime('-1 year')),
+            'cardExpMonth' => '12',
+            'cardCvv' => '123',
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertSame('The card has expired', $data['errors']);
+    }
+
+    private function callApiEndpoint(string $paymentGateway, array $payload = []): void
+    {
+        $this->client->request(
+            method: 'POST',
+            uri: '/payment/gateway/' . $paymentGateway,
+            server: [
+                'CONTENT_TYPE' => 'application/json'
+            ],
+            content: json_encode($payload)
+        );
     }
 }
