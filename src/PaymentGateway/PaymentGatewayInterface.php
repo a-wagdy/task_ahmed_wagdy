@@ -9,5 +9,6 @@ use App\DTO\PaymentGatewayResponseDto;
 
 interface PaymentGatewayInterface
 {
+    public static function getPaymentGatewayName(): string;
     public function processPayment(PaymentGatewayInputDto $dto): PaymentGatewayResponseDto;
 }

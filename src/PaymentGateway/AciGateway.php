@@ -17,6 +17,11 @@ class AciGateway implements PaymentGatewayInterface
     ) {
     }
 
+    public static function getPaymentGatewayName(): string
+    {
+        return 'aci';
+    }
+
     public function processPayment(PaymentGatewayInputDto $dto): PaymentGatewayResponseDto
     {
         $paymentData = [

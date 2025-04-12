@@ -17,6 +17,11 @@ class Shift4Gateway implements PaymentGatewayInterface
     ) {
     }
 
+    public static function getPaymentGatewayName(): string
+    {
+        return 'shift4';
+    }
+
     /**
      * @throws PaymentProcessingException
      */

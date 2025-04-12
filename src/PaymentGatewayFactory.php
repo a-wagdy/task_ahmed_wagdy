@@ -6,24 +6,26 @@ namespace App;
 
 use InvalidArgumentException;
 
-use App\PaymentGateway\AciGateway;
-use App\PaymentGateway\Shift4Gateway;
 use App\PaymentGateway\PaymentGatewayInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\DependencyInjection\Attribute\TaggedLocator;
 
 class PaymentGatewayFactory
 {
     public function __construct(
-        private readonly AciGateway $aciGateway,
-        private readonly Shift4Gateway $shift4Gateway,
+        #[TaggedLocator(tag: 'app.payment_gateway', defaultIndexMethod: 'getPaymentGatewayName')]
+        private readonly ServiceLocator $locator,
     ) {
     }
 
     public function get(string $name): PaymentGatewayInterface
     {
-        return match (strtolower($name)) {
-            'shift4' => $this->shift4Gateway,
-            'aci' => $this->aciGateway,
-            default => throw new InvalidArgumentException("Unsupported payment gateway {$name}"),
-        };
+        $name = strtolower($name);
+
+        if (!$this->locator->has($name)) {
+            throw new InvalidArgumentException("Unsupported payment gateway: {$name}");
+        }
+
+        return $this->locator->get($name);
     }
 }
