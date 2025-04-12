@@ -36,7 +36,7 @@ class Shift4Gateway implements PaymentGatewayInterface
             currency: $chargeData['currency'],
             transactionId: $chargeData['id'],
             createdAt: $dateCreated->format('Y-m-d H:i:s'),
-            amount: (string) $chargeData['amount'],
+            amount: $chargeData['amount'] > 0 ? $chargeData['amount'] / 100 : $chargeData['amount'],
             cardBin: $chargeData['card']['first6']
         );
     }
