@@ -20,7 +20,6 @@ final class PaymentGatewayController extends AbstractController
     #[
         Route('/payment/gateway/{gateway}',
         name: 'app_payment_gateway',
-        requirements: ['gateway' => 'aci|shift4'],
         methods: ['POST'])
     ]
     public function index(
@@ -28,14 +27,14 @@ final class PaymentGatewayController extends AbstractController
         #[MapRequestPayload]
         PaymentGatewayInputDto $paymentRequest
     ): JsonResponse {
-        if ($this->isCardExpired((int) $paymentRequest->cardExpMonth, (int) $paymentRequest->cardExpYear)) {
-            return new JsonResponse([
-                'errors' => 'The card has expired'
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
         try {
             $paymentGateway = $this->gatewayFactory->get($gateway);
+
+            if ($this->isCardExpired((int) $paymentRequest->cardExpMonth, (int) $paymentRequest->cardExpYear)) {
+                return new JsonResponse([
+                    'errors' => 'The card has expired'
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
             $dto = $paymentGateway->processPayment($paymentRequest);
 
@@ -48,7 +47,7 @@ final class PaymentGatewayController extends AbstractController
             ]);
 
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['errors' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
