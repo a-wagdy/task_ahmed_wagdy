@@ -9,7 +9,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class Shift4Client
 {
     private const API_URL = 'https://api.shift4.com';
-    private const AUTH_KEY = 'sk_test_QhvkbCgZGSjMymoKuckXQfRq';
 
     public function __construct(
         private readonly HttpClientInterface $client,
@@ -20,7 +19,7 @@ class Shift4Client
     {
         $response = $this->client->request('POST', self::API_URL . '/tokens', [
             'auth_basic' => [
-                self::AUTH_KEY,
+                $_ENV['SHIFT4_AUTH_KEY'] ?? '',
                 ''
             ],
             'body' => $cardData,
@@ -33,7 +32,7 @@ class Shift4Client
     {
         $response = $this->client->request('POST', self::API_URL . '/charges', [
             'auth_basic' => [
-                self::AUTH_KEY,
+                $_ENV['SHIFT4_AUTH_KEY'] ?? '',
                 ''
             ],
             'body' => $chargeData,
