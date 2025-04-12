@@ -62,22 +62,96 @@ final class PaymentGatewayControllerTest extends WebTestCase
         $this->assertSame('420000', $data['cardBin']);
     }
 
-    public function testValidationErrorForInvalidAmount(): void
+    /**
+     * @dataProvider invalidPayloadProvider
+     */
+    public function testValidationErrors(array $payload, array $expectedErrors): void
     {
-        $this->callApiEndpoint('shift4', [
-            'amount' => 123.123,
-            'currency' => 'USD',
-            'cardNumber' => '4200000000000000',
-            'cardExpYear' => date('Y', strtotime('+1 year')),
-            'cardExpMonth' => '12',
-            'cardCvv' => '123',
-        ]);
-
+        $this->callApiEndpoint('aci', $payload);
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
-        $data = json_decode($this->client->getResponse()->getContent(), true);
 
+        $data = json_decode($this->client->getResponse()->getContent(), true);
         $this->assertArrayHasKey('errors', $data);
-        $this->assertArrayHasKey('amount', $data['errors']);
+
+        foreach ($expectedErrors as $field => $errorMessage) {
+            $this->assertArrayHasKey($field, $data['errors']);
+            $this->assertStringContainsString($errorMessage, $data['errors'][$field]);
+        }
+    }
+
+    public function invalidPayloadProvider(): \Generator
+    {
+        yield 'Invalid amount (too many decimals)' => [
+            [
+                'amount' => 123.123,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['amount' => 'The value can have at most 2 digits after the decimal point']
+        ];
+
+        yield 'Negative amount' => [
+            [
+                'amount' => -100.00,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['amount' => 'The value can have at most 2 digits after the decimal point']
+        ];
+
+        yield 'Invalid currency' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'AAA',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['currency' => 'This value is not a valid currency']
+        ];
+
+        yield 'Invalid card number length' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'USD',
+                'cardNumber' => '420000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '123',
+            ],
+            ['cardNumber' => 'This value should have exactly 16 characters']
+        ];
+
+        yield 'Invalid CVV format' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '12',
+                'cardCvv' => '12',
+            ],
+            ['cardCvv' => 'The value must be 3 digits']
+        ];
+
+        yield 'Invalid expiration month' => [
+            [
+                'amount' => 100.00,
+                'currency' => 'USD',
+                'cardNumber' => '4200000000000000',
+                'cardExpYear' => date('Y', strtotime('+1 year')),
+                'cardExpMonth' => '13',
+                'cardCvv' => '123',
+            ],
+            ['cardExpMonth' => 'This value should be between 1 and 12']
+        ];
     }
 
     public function testCallUnsupportedGateway(): void
