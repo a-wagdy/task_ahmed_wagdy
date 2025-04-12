@@ -49,7 +49,7 @@ class Shift4Gateway implements PaymentGatewayInterface
     private function generateCardToken(PaymentGatewayInputDto $dto): string
     {
         $tokenData = $this->client->createToken([
-            'number' => '4242424242424242',
+            'number' => '4242424242424242', // hardcoded as stated by the task
             'expMonth' => $dto->cardExpMonth,
             'expYear' => $dto->cardExpYear,
             'cvc' => $dto->cardCvv,

@@ -30,7 +30,7 @@ class AciGateway implements PaymentGatewayInterface
             'card.expiryMonth' => $dto->cardExpMonth,
             'card.expiryYear' => $dto->cardExpYear,
             'card.cvv' => $dto->cardCvv,
-            'card.number' => '4200000000000000',
+            'card.number' => '4200000000000000', // hardcoded as stated by the task
             'card.holder' => 'John Doe',
             'paymentType' => 'PA',
             'paymentBrand' => 'VISA',
