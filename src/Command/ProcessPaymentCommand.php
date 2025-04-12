@@ -97,7 +97,6 @@ class ProcessPaymentCommand extends Command
             return Command::FAILURE;
         }
 
-        // Check card expiration
         if ($this->paymentGatewayService->isCardExpired(
             (int) $dto->cardExpMonth,
             (int) $dto->cardExpYear)
@@ -114,7 +113,6 @@ class ProcessPaymentCommand extends Command
             return Command::FAILURE;
         }
 
-        // Display success
         $io->success('Payment processed successfully');
         $io->table(
             ['Field', 'Value'],
