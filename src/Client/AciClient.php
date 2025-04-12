@@ -19,7 +19,7 @@ class AciClient
     {
         $response = $this->client->request('POST', self::API_URL . '/payments', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $_ENV['ACI_AUTH_KEY'] ?? '',
+                'Authorization' => 'Bearer ' . ($_ENV['ACI_AUTH_KEY'] ?? ''),
             ],
             'body' => array_merge($paymentData, [
                 'entityId' => $_ENV['ACI_ENTITY_ID'] ?? '',

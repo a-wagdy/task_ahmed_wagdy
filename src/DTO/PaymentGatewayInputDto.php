@@ -22,10 +22,7 @@ class PaymentGatewayInputDto
     public string $currency;
 
     #[Assert\NotBlank]
-    #[Assert\Regex(
-        pattern: '/^\d{4}$/',
-        message: 'The value must be 16 digits'
-    )]
+    #[Assert\Length(16)]
     public string $cardNumber;
 
     #[Assert\NotBlank]
