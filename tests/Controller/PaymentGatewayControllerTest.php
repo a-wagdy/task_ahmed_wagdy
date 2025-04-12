@@ -205,6 +205,25 @@ final class PaymentGatewayControllerTest extends WebTestCase
         $this->assertArrayHasKey('cardExpMonth', $data['errors']);
     }
 
+    public function testInvalidJsonPayload(): void
+    {
+        $this->client->request(
+            method: 'POST',
+            uri: '/payment/gateway/aci',
+            server: [
+                'CONTENT_TYPE' => 'application/json'
+            ],
+            content: '{"amount": 100.00, "currency": "USD"' // Missing bracket
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('errors', $data);
+
+        $this->assertSame('Request payload contains invalid "json" data.', $data['errors']);
+    }
+
     private function callApiEndpoint(string $paymentGateway, array $payload = []): void
     {
         $this->client->request(
