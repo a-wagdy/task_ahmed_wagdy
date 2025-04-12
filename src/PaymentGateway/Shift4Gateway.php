@@ -42,8 +42,6 @@ class Shift4Gateway implements PaymentGatewayInterface
     }
 
     /**
-     * @param PaymentGatewayInputDto $dto
-     * @return string
      * @throws PaymentProcessingException
      */
     private function generateCardToken(PaymentGatewayInputDto $dto): string
@@ -65,9 +63,6 @@ class Shift4Gateway implements PaymentGatewayInterface
     }
 
     /**
-     * @param PaymentGatewayInputDto $dto
-     * @param string $token
-     * @return array
      * @throws PaymentProcessingException
      */
     private function chargeCard(PaymentGatewayInputDto $dto, string $token): array
