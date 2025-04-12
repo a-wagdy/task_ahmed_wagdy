@@ -82,7 +82,7 @@ class ProcessPaymentCommand extends Command
         $gatewayName = strtolower($input->getArgument('gateway'));
 
         $dto = new PaymentGatewayInputDto();
-        $dto->amount = (float) $input->getOption('amount');
+        $dto->amount = $input->getOption('amount');
         $dto->currency = $input->getOption('currency');
         $dto->cardNumber = $input->getOption('cardNumber');
         $dto->cardExpMonth = $input->getOption('cardExpMonth');
