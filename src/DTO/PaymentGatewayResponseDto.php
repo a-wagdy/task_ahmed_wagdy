@@ -10,7 +10,7 @@ class PaymentGatewayResponseDto
         private readonly string $currency,
         private readonly string $transactionId,
         private readonly string $createdAt,
-        private readonly string $amount,
+        private readonly float $amount,
         private readonly string $cardBin
     ) {
     }
@@ -30,7 +30,7 @@ class PaymentGatewayResponseDto
         return $this->createdAt;
     }
 
-    public function getAmount(): string
+    public function getAmount(): float
     {
         return $this->amount;
     }

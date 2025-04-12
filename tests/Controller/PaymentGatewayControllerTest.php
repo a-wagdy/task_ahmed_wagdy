@@ -45,7 +45,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
         ;
 
         $this->callApiEndpoint('aci', [
-            'amount' => 100.00,
+            'amount' => '100.00',
             'currency' => 'USD',
             'cardNumber' => '4200000000000000',
             'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -57,7 +57,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
 
         $this->assertSame('tx123', $data['transactionId']);
-        $this->assertSame('100.00', $data['amount']);
+        $this->assertSame(100, $data['amount']);
         $this->assertSame('USD', $data['currency']);
         $this->assertSame('420000', $data['cardBin']);
     }
@@ -83,7 +83,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
     {
         yield 'Invalid amount (too many decimals)' => [
             [
-                'amount' => 123.123,
+                'amount' => '123.123',
                 'currency' => 'USD',
                 'cardNumber' => '4200000000000000',
                 'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -95,7 +95,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
 
         yield 'Negative amount' => [
             [
-                'amount' => -100.00,
+                'amount' => '-100.00',
                 'currency' => 'USD',
                 'cardNumber' => '4200000000000000',
                 'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -107,7 +107,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
 
         yield 'Invalid currency' => [
             [
-                'amount' => 100.00,
+                'amount' => '100.00',
                 'currency' => 'AAA',
                 'cardNumber' => '4200000000000000',
                 'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -119,7 +119,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
 
         yield 'Invalid card number length' => [
             [
-                'amount' => 100.00,
+                'amount' => '100.00',
                 'currency' => 'USD',
                 'cardNumber' => '420000000000',
                 'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -131,7 +131,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
 
         yield 'Invalid CVV format' => [
             [
-                'amount' => 100.00,
+                'amount' => '100.00',
                 'currency' => 'USD',
                 'cardNumber' => '4200000000000000',
                 'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -143,7 +143,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
 
         yield 'Invalid expiration month' => [
             [
-                'amount' => 100.00,
+                'amount' => '100.00',
                 'currency' => 'USD',
                 'cardNumber' => '4200000000000000',
                 'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -157,7 +157,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
     public function testCallUnsupportedGateway(): void
     {
         $this->callApiEndpoint('unsupported', [
-            'amount' => 100.00,
+            'amount' => '100.00',
             'currency' => 'USD',
             'cardNumber' => '4200000000000000',
             'cardExpYear' => date('Y', strtotime('+1 year')),
@@ -174,7 +174,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
     public function testExpiredCard(): void
     {
         $this->callApiEndpoint('aci', [
-            'amount' => 100.00,
+            'amount' => '100.00',
             'currency' => 'USD',
             'cardNumber' => '4200000000000000',
             'cardExpYear' => date('Y', strtotime('-1 year')),

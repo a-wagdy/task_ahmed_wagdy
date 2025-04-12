@@ -48,7 +48,7 @@ class AciGateway implements PaymentGatewayInterface
             currency: $response['currency'],
             transactionId: $response['id'],
             createdAt: $dateCreated->format('Y-m-d H:i:s'),
-            amount: $response['amount'],
+            amount: (float) $response['amount'],
             cardBin: $response['card']['bin']
         );
     }

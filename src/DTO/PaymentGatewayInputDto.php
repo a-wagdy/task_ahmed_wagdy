@@ -9,13 +9,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 class PaymentGatewayInputDto
 {
     #[Assert\NotBlank]
-    #[Assert\Type('float')]
+    #[Assert\Type('string')]
     #[Assert\Positive]
     #[Assert\Regex(
         pattern: '/^\d+(\.\d{1,2})?$/',
         message: 'The value can have at most 2 digits after the decimal point'
     )]
-    public float $amount;
+    public string $amount;
 
     #[Assert\NotBlank]
     #[Assert\Currency]

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\PaymentGatewayFactory;
 use App\DTO\PaymentGatewayInputDto;
+use App\PaymentGateway\PaymentGatewayService;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,7 @@ final class PaymentGatewayController extends AbstractController
 {
     public function __construct(
         private readonly PaymentGatewayFactory $gatewayFactory,
+        private readonly PaymentGatewayService $paymentGatewayService,
     ) {
     }
 
@@ -30,7 +32,10 @@ final class PaymentGatewayController extends AbstractController
         try {
             $paymentGateway = $this->gatewayFactory->get($gateway);
 
-            if ($this->isCardExpired((int) $paymentRequest->cardExpMonth, (int) $paymentRequest->cardExpYear)) {
+            if ($this->paymentGatewayService->isCardExpired(
+                (int) $paymentRequest->cardExpMonth,
+                (int) $paymentRequest->cardExpYear)
+            ) {
                 return new JsonResponse([
                     'errors' => 'The card has expired'
                 ], Response::HTTP_BAD_REQUEST);
@@ -49,13 +54,5 @@ final class PaymentGatewayController extends AbstractController
         } catch (\Throwable $e) {
             return new JsonResponse(['errors' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
-    }
-
-    private function isCardExpired(int $month, int $year): bool
-    {
-        $currentYear = (int) date('Y');
-        $currentMonth = (int) date('m');
-
-        return $year < $currentYear || ($year === $currentYear && $month < $currentMonth);
     }
 }
