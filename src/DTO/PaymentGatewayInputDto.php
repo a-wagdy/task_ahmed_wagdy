@@ -22,15 +22,24 @@ class PaymentGatewayInputDto
     public string $currency;
 
     #[Assert\NotBlank]
-    #[Assert\Length(16)]
+    #[Assert\Regex(
+        pattern: '/^\d{4}$/',
+        message: 'The value must be 16 digits'
+    )]
     public string $cardNumber;
 
     #[Assert\NotBlank]
-    #[Assert\Length(4)]
+    #[Assert\Regex(
+        pattern: '/^\d{4}$/',
+        message: 'The value must be 4 digits'
+    )]
     public string $cardExpYear;
 
     #[Assert\NotBlank]
-    #[Assert\Length(2)]
+    #[Assert\Regex(
+        pattern: '/^\d{2}$/',
+        message: 'The value must be 2 digits'
+    )]
     #[Assert\Range(
         min: 1,
         max: 12
@@ -38,6 +47,9 @@ class PaymentGatewayInputDto
     public string $cardExpMonth;
 
     #[Assert\NotBlank]
-    #[Assert\Length(3)]
+    #[Assert\Regex(
+        pattern: '/^\d{3}$/',
+        message: 'The value must be 3 digits'
+    )]
     public string $cardCvv;
 }
