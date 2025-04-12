@@ -60,7 +60,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
         $this->assertSame('420000', $data['cardBin']);
     }
 
-    public function testValidationErrors(): void
+    public function testValidationErrorForInvalidAmount(): void
     {
         $this->callApiEndpoint('shift4', [
             'amount' => 123.123,
@@ -111,6 +111,22 @@ final class PaymentGatewayControllerTest extends WebTestCase
 
         $this->assertArrayHasKey('errors', $data);
         $this->assertSame('The card has expired', $data['errors']);
+    }
+
+    public function testMissingRequiredFields(): void
+    {
+        $this->callApiEndpoint('aci');
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertArrayHasKey('amount', $data['errors']);
+        $this->assertArrayHasKey('cardCvv', $data['errors']);
+        $this->assertArrayHasKey('currency', $data['errors']);
+        $this->assertArrayHasKey('cardNumber', $data['errors']);
+        $this->assertArrayHasKey('cardExpYear', $data['errors']);
+        $this->assertArrayHasKey('cardExpMonth', $data['errors']);
     }
 
     private function callApiEndpoint(string $paymentGateway, array $payload = []): void
