@@ -43,12 +43,12 @@ final class PaymentGatewayController extends AbstractController
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Successful payment',
+                description: '',
                 content: new OA\JsonContent(ref: new Model(type: PaymentGatewayResponseDto::class))
             ),
             new OA\Response(
-                response: 400,
-                description: 'Invalid request'
+                response: 422,
+                description: '',
             ),
         ]
     )]

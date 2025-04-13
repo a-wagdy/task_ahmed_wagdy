@@ -8,6 +8,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Schema(
     schema: 'PaymentGatewayResponseDto',
+    title: 'Response payload',
     required: ['transactionId', 'amount', 'currency', 'createdAt', 'cardBin']
 )]
 class PaymentGatewayResponseDto

@@ -9,6 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[OA\Schema(
     schema: 'PaymentGatewayInputDto',
+    title: 'Request payload',
     required: ['amount', 'currency', 'cardNumber', 'cardExpYear', 'cardExpMonth', 'cardCvv']
 )]
 class PaymentGatewayInputDto
@@ -27,7 +28,7 @@ class PaymentGatewayInputDto
     public string $currency;
 
     #[Assert\NotBlank]
-    #[Assert\Length(16)]
+    #[Assert\Length(16, exactMessage: 'Invalid card number')]
     #[OA\Property(type: 'string', example: '4242424242424242')]
     public string $cardNumber;
 
