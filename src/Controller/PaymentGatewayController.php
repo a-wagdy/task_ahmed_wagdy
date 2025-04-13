@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use OpenApi\Attributes as OA;
 use App\PaymentGatewayFactory;
 use App\DTO\PaymentGatewayInputDto;
+use App\DTO\PaymentGatewayResponseDto;
+use Nelmio\ApiDocBundle\Attribute\Model;
 use App\PaymentGateway\PaymentGatewayService;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,11 +22,36 @@ final class PaymentGatewayController extends AbstractController
     ) {
     }
 
-    #[
-        Route('/payment/gateway/{gateway}',
-        name: 'app_payment_gateway',
-        methods: ['POST'])
-    ]
+    #[OA\Tag(name: 'Payment')]
+    #[Route('/payment/gateway/{gateway}', name: 'app_payment_gateway', methods: ['POST'])]
+    #[OA\Post(
+        path: '/payment/gateway/{gateway}',
+        summary: 'Process a payment using Shift4 or ACI',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: new Model(type: PaymentGatewayInputDto::class))
+        ),
+        parameters: [
+            new OA\Parameter(
+                name: 'gateway',
+                description: 'Payment gateway name (e.g., shift4, aci)',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Successful payment',
+                content: new OA\JsonContent(ref: new Model(type: PaymentGatewayResponseDto::class))
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid request'
+            ),
+        ]
+    )]
     public function index(
         string $gateway,
         #[MapRequestPayload]
