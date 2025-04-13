@@ -49,6 +49,10 @@ class Shift4Client
 
         $data = json_decode($content, true);
 
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new PaymentProcessingException('Invalid JSON received from Shift4 acquirer');
+        }
+
         if (isset($data['error'])) {
             throw new PaymentProcessingException($data['error']['message']);
         }
