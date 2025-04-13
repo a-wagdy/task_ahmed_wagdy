@@ -67,8 +67,9 @@ class Shift4Gateway implements PaymentGatewayInterface
      */
     private function chargeCard(PaymentGatewayInputDto $dto, string $token): array
     {
+        $amount = (int) $dto->amount;
         $chargeData = $this->client->createCharge([
-            'amount' => $dto->amount * 100,
+            'amount' => $amount * 100,
             'currency' => $dto->currency,
             'card' => $token,
         ]);
