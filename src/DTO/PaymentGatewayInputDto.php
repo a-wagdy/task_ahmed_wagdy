@@ -12,8 +12,8 @@ class PaymentGatewayInputDto
     #[Assert\Type('string')]
     #[Assert\Positive]
     #[Assert\Regex(
-        pattern: '/^\d+(\.\d{1,2})?$/',
-        message: 'The value can have at most 2 digits after the decimal point'
+        pattern: '/^[0-9]{1,7}(\.[0-9]{2})?$/',
+        message: 'The value must have 1-7 digits before the decimal point and exactly 2 digits after if a decimal point is present'
     )]
     public string $amount;
 

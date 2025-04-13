@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Client;
 
+use App\Exception\PaymentProcessingException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class Shift4Client
 {
@@ -25,7 +27,7 @@ class Shift4Client
             'body' => $cardData,
         ]);
 
-        return $response->toArray();
+        return $this->extractDataFromResponse($response);
     }
 
     public function createCharge(array $chargeData): array
@@ -38,7 +40,19 @@ class Shift4Client
             'body' => $chargeData,
         ]);
 
-        return $response->toArray();
+        return $this->extractDataFromResponse($response);
     }
 
+    private function extractDataFromResponse(ResponseInterface $response): array
+    {
+        $content = $response->getContent(false);
+
+        $data = json_decode($content, true);
+
+        if (isset($data['error'])) {
+            throw new PaymentProcessingException($data['error']['message']);
+        }
+
+        return $data;
+    }
 }
