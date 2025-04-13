@@ -23,9 +23,9 @@ final class AcquirerGatewayController extends AbstractController
     }
 
     #[OA\Tag(name: 'Payment')]
-    #[Route('/payment/gateway/{gateway}', name: 'app_payment_gateway', methods: ['POST'])]
+    #[Route('/payment/gateway/{acquirer}', name: 'app_payment_gateway', methods: ['POST'])]
     #[OA\Post(
-        path: '/payment/gateway/{gateway}',
+        path: '/payment/gateway/{acquirer}',
         summary: 'Process a payment using Shift4 or ACI',
         requestBody: new OA\RequestBody(
             required: true,
@@ -33,8 +33,8 @@ final class AcquirerGatewayController extends AbstractController
         ),
         parameters: [
             new OA\Parameter(
-                name: 'gateway',
-                description: 'Payment gateway name (e.g., shift4, aci)',
+                name: 'acquirer',
+                description: 'Acquirer name (e.g., shift4, aci)',
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'string')
