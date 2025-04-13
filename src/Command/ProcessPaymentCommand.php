@@ -25,7 +25,7 @@ class ProcessPaymentCommand extends Command
     public function __construct(
         private readonly ValidatorInterface $validator,
         private readonly CardUtilsService $cardUtilsService,
-        private readonly AcquirerGatewayFactory $gatewayFactory,
+        private readonly AcquirerGatewayFactory $acquirerFactory,
     ) {
         parent::__construct();
     }
@@ -34,9 +34,9 @@ class ProcessPaymentCommand extends Command
     {
         $this
             ->addArgument(
-                'gateway',
+                'acquirer',
                 InputArgument::REQUIRED,
-                'The payment gateway to use (e.g., aci, shift4)'
+                'The acquirer to use (e.g., aci, shift4)'
             )
             ->addOption(
                 'amount',
@@ -79,7 +79,7 @@ class ProcessPaymentCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $gatewayName = strtolower($input->getArgument('gateway'));
+        $acquirerName = strtolower($input->getArgument('acquirer'));
 
         $dto = new CardTransactionRequestDto();
         $dto->amount = $input->getOption('amount');
@@ -106,7 +106,7 @@ class ProcessPaymentCommand extends Command
         }
 
         try {
-            $gateway = $this->gatewayFactory->get($gatewayName);
+            $gateway = $this->acquirerFactory->get($acquirerName);
             $response = $gateway->authorizeAndCapture($dto);
         } catch (\Throwable $e) {
             $io->error(sprintf('Error: %s', $e->getMessage()));
