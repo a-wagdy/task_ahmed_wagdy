@@ -23,7 +23,7 @@ class AcquirerGatewayFactory
         $name = strtolower($name);
 
         if (!$this->locator->has($name)) {
-            throw new InvalidArgumentException("Unsupported payment gateway: {$name}");
+            throw new InvalidArgumentException("Unsupported acquirer gateway: {$name}");
         }
 
         return $this->locator->get($name);
