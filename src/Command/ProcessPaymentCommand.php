@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsCommand(
     name: 'app:process-payment',
-    description: 'Process a payment through a specified payment gateway',
+    description: 'Process a payment through a specified acquirer gateway',
 )]
 class ProcessPaymentCommand extends Command
 {
