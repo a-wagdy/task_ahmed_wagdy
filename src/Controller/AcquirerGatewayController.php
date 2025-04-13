@@ -53,12 +53,12 @@ final class AcquirerGatewayController extends AbstractController
         ]
     )]
     public function index(
-        string $gateway,
+        string $acquirer,
         #[MapRequestPayload]
         CardTransactionRequestDto $paymentRequest
     ): JsonResponse {
         try {
-            $paymentGateway = $this->gatewayFactory->get($gateway);
+            $paymentGateway = $this->gatewayFactory->get($acquirer);
 
             if ($this->cardUtilsService->isCardExpired(
                 (int) $paymentRequest->cardExpMonth,

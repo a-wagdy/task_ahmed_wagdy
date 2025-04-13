@@ -168,7 +168,7 @@ final class AcquirerGatewayControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
         $data = json_decode($this->client->getResponse()->getContent(), true);
 
-        $this->assertSame('Unsupported payment gateway: unsupported', $data['errors']);
+        $this->assertSame('Unsupported acquirer gateway: unsupported', $data['errors']);
     }
 
     public function testExpiredCard(): void
@@ -224,11 +224,11 @@ final class AcquirerGatewayControllerTest extends WebTestCase
         $this->assertSame('Request payload contains invalid "json" data.', $data['errors']);
     }
 
-    private function callApiEndpoint(string $paymentGateway, array $payload = []): void
+    private function callApiEndpoint(string $acquirerName, array $payload = []): void
     {
         $this->client->request(
             method: 'POST',
-            uri: '/payment/gateway/' . $paymentGateway,
+            uri: '/payment/gateway/' . $acquirerName,
             server: [
                 'CONTENT_TYPE' => 'application/json'
             ],
