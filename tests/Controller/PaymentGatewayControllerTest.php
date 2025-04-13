@@ -90,7 +90,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
                 'cardExpMonth' => '12',
                 'cardCvv' => '123',
             ],
-            ['amount' => 'The value can have at most 2 digits after the decimal point']
+            ['amount' => 'The value must have 1-7 digits before the decimal point and exactly 2 digits after if a decimal point is present']
         ];
 
         yield 'Negative amount' => [
@@ -102,7 +102,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
                 'cardExpMonth' => '12',
                 'cardCvv' => '123',
             ],
-            ['amount' => 'The value can have at most 2 digits after the decimal point']
+            ['amount' => 'This value should be positive']
         ];
 
         yield 'Invalid currency' => [
@@ -126,7 +126,7 @@ final class PaymentGatewayControllerTest extends WebTestCase
                 'cardExpMonth' => '12',
                 'cardCvv' => '123',
             ],
-            ['cardNumber' => 'This value should have exactly 16 characters']
+            ['cardNumber' => 'Invalid card number']
         ];
 
         yield 'Invalid CVV format' => [

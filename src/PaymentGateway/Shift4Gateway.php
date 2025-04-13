@@ -41,9 +41,6 @@ class Shift4Gateway implements PaymentGatewayInterface
         );
     }
 
-    /**
-     * @throws PaymentProcessingException
-     */
     private function generateCardToken(PaymentGatewayInputDto $dto): string
     {
         $tokenData = $this->client->createToken([
@@ -53,30 +50,17 @@ class Shift4Gateway implements PaymentGatewayInterface
             'cvc' => $dto->cardCvv,
         ]);
 
-        $token = $tokenData['id'] ?? null;
-
-        if (!$token) {
-            throw new PaymentProcessingException('Token creation failed');
-        }
-
-        return $token;
+        return $tokenData['id'];
     }
 
-    /**
-     * @throws PaymentProcessingException
-     */
     private function chargeCard(PaymentGatewayInputDto $dto, string $token): array
     {
-        $chargeData = $this->client->createCharge([
-            'amount' => $dto->amount * 100,
+        $amount = (int) $dto->amount;
+
+        return $this->client->createCharge([
+            'amount' => $amount * 100,
             'currency' => $dto->currency,
             'card' => $token,
         ]);
-
-        if (isset($chargeData['error']) || $chargeData['status'] !== 'successful') {
-            throw new PaymentProcessingException('Charge creation failed: ' . $chargeData['error']['message']);
-        }
-
-        return $chargeData;
     }
 }

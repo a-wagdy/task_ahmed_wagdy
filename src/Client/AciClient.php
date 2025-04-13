@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Client;
 
+use App\Exception\PaymentProcessingException;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AciClient
@@ -26,6 +28,19 @@ class AciClient
             ]),
         ]);
 
-        return $response->toArray();
+        return $this->extractDataFromResponse($response);
+    }
+
+    private function extractDataFromResponse(ResponseInterface $response): array
+    {
+        $content = $response->getContent(false);
+
+        $data = json_decode($content, true);
+
+        if (isset($data['result']['parameterErrors'])) {
+            throw new PaymentProcessingException($data['result']['parameterErrors'][0]['name'] . ': ' . $data['result']['parameterErrors'][0]['message']);
+        }
+
+        return $data;
     }
 }

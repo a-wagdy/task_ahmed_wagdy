@@ -38,10 +38,6 @@ class AciGateway implements PaymentGatewayInterface
 
         $response = $this->client->createPayment($paymentData);
 
-        if (isset($response['error'])) {
-            throw new PaymentProcessingException($response['error']);
-        }
-
         $dateCreated = DateTime::createFromFormat('Y-m-d H:i:s.uO', $response['timestamp']);
 
         return new PaymentGatewayResponseDto(

@@ -15,9 +15,9 @@ class ExceptionListener
     {
         $exception = $event->getThrowable();
         $request = $event->getRequest();
-        $statusCode = $exception->getStatusCode();
 
         if ($request->getContentTypeFormat() === 'json' && $exception instanceof HttpExceptionInterface) {
+            $statusCode = $exception->getStatusCode();
             $throwable = $exception->getPrevious();
             if ($throwable instanceof ValidationFailedException) {
                 $response = $this->handleValidationException($throwable, $statusCode);
