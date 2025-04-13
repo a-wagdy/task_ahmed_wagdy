@@ -6,33 +6,29 @@ namespace App\PaymentGateway;
 
 use DateTime;
 use App\Client\Shift4Client;
-use App\DTO\PaymentGatewayInputDto;
-use App\DTO\PaymentGatewayResponseDto;
-use App\Exception\PaymentProcessingException;
+use App\DTO\AcquirerResponseDto;
+use App\DTO\CardTransactionRequestDto;
 
-class Shift4Gateway implements PaymentGatewayInterface
+class Shift4Gateway implements AcquirerInterface
 {
     public function __construct(
         private readonly Shift4Client $client,
     ) {
     }
 
-    public static function getPaymentGatewayName(): string
+    public static function getAcquirerName(): string
     {
         return 'shift4';
     }
 
-    /**
-     * @throws PaymentProcessingException
-     */
-    public function processPayment(PaymentGatewayInputDto $dto): PaymentGatewayResponseDto
+    public function authorizeAndCapture(CardTransactionRequestDto $dto): AcquirerResponseDto
     {
-        $token = $this->generateCardToken($dto);
-        $chargeData = $this->chargeCard($dto, $token);
+        $token = $this->authorizeCard($dto);
+        $chargeData = $this->capturePayment($dto, $token);
 
         $dateCreated = (new DateTime())->setTimestamp($chargeData['created']);
 
-        return new PaymentGatewayResponseDto(
+        return new AcquirerResponseDto(
             currency: $chargeData['currency'],
             transactionId: $chargeData['id'],
             createdAt: $dateCreated->format('Y-m-d H:i:s'),
@@ -41,7 +37,7 @@ class Shift4Gateway implements PaymentGatewayInterface
         );
     }
 
-    private function generateCardToken(PaymentGatewayInputDto $dto): string
+    private function authorizeCard(CardTransactionRequestDto $dto): string
     {
         $tokenData = $this->client->createToken([
             'number' => '4242424242424242', // hardcoded as stated by the task
@@ -53,7 +49,7 @@ class Shift4Gateway implements PaymentGatewayInterface
         return $tokenData['id'];
     }
 
-    private function chargeCard(PaymentGatewayInputDto $dto, string $token): array
+    private function capturePayment(CardTransactionRequestDto $dto, string $token): array
     {
         $amount = (int) $dto->amount;
 

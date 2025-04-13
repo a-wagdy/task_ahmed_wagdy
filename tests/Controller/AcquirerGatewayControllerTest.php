@@ -3,17 +3,17 @@
 namespace App\Tests\Controller;
 
 use App\PaymentGateway\AciGateway;
-use App\DTO\PaymentGatewayResponseDto;
+use App\DTO\AcquirerResponseDto;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Response;
-use App\PaymentGateway\PaymentGatewayInterface;
+use App\PaymentGateway\AcquirerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-final class PaymentGatewayControllerTest extends WebTestCase
+final class AcquirerGatewayControllerTest extends WebTestCase
 {
     private KernelBrowser $client;
-    private PaymentGatewayInterface|MockObject $paymentGatewayMock;
+    private AcquirerInterface|MockObject $acquirerGatewayMock;
 
     protected static function getKernelClass(): string
     {
@@ -24,13 +24,13 @@ final class PaymentGatewayControllerTest extends WebTestCase
     {
         $this->client = static::createClient();
 
-        $this->paymentGatewayMock = $this->createMock(PaymentGatewayInterface::class);
-        self::getContainer()->set(AciGateway::class, $this->paymentGatewayMock);
+        $this->acquirerGatewayMock = $this->createMock(AcquirerInterface::class);
+        self::getContainer()->set(AciGateway::class, $this->acquirerGatewayMock);
     }
 
     public function testSuccessfulPayment(): void
     {
-        $mockResponse = new PaymentGatewayResponseDto(
+        $mockResponse = new AcquirerResponseDto(
             currency: 'USD',
             transactionId: 'tx123',
             createdAt: '2024-04-12 10:00:00',
@@ -38,9 +38,9 @@ final class PaymentGatewayControllerTest extends WebTestCase
             cardBin: '420000'
         );
 
-        $this->paymentGatewayMock
+        $this->acquirerGatewayMock
             ->expects($this->once())
-            ->method('processPayment')
+            ->method('authorizeAndCapture')
             ->willReturn($mockResponse)
         ;
 

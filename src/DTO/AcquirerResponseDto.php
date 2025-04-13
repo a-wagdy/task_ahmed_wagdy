@@ -7,11 +7,11 @@ namespace App\DTO;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(
-    schema: 'PaymentGatewayResponseDto',
+    schema: 'AcquirerResponseDto',
     title: 'Response payload',
     required: ['transactionId', 'amount', 'currency', 'createdAt', 'cardBin']
 )]
-class PaymentGatewayResponseDto
+class AcquirerResponseDto
 {
     public function __construct(
         #[OA\Property(type: 'string', example: 'USD')]

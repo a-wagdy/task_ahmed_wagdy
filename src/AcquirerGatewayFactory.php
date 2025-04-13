@@ -6,19 +6,19 @@ namespace App;
 
 use InvalidArgumentException;
 
-use App\PaymentGateway\PaymentGatewayInterface;
+use App\PaymentGateway\AcquirerInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\DependencyInjection\Attribute\TaggedLocator;
 
-class PaymentGatewayFactory
+class AcquirerGatewayFactory
 {
     public function __construct(
-        #[TaggedLocator(tag: 'app.payment_gateway', defaultIndexMethod: 'getPaymentGatewayName')]
+        #[TaggedLocator(tag: 'app.acquirer_gateway', defaultIndexMethod: 'getAcquirerName')]
         private readonly ServiceLocator $locator,
     ) {
     }
 
-    public function get(string $name): PaymentGatewayInterface
+    public function get(string $name): AcquirerInterface
     {
         $name = strtolower($name);
 
