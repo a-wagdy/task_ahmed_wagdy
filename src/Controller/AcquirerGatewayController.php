@@ -3,38 +3,38 @@
 namespace App\Controller;
 
 use OpenApi\Attributes as OA;
-use App\PaymentGatewayFactory;
-use App\DTO\PaymentGatewayInputDto;
-use App\DTO\PaymentGatewayResponseDto;
+use App\AcquirerGatewayFactory;
+use App\DTO\AcquirerResponseDto;
+use App\DTO\CardTransactionRequestDto;
 use Nelmio\ApiDocBundle\Attribute\Model;
-use App\PaymentGateway\PaymentGatewayService;
+use App\PaymentGateway\CardUtilsService;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-final class PaymentGatewayController extends AbstractController
+final class AcquirerGatewayController extends AbstractController
 {
     public function __construct(
-        private readonly PaymentGatewayFactory $gatewayFactory,
-        private readonly PaymentGatewayService $paymentGatewayService,
+        private readonly CardUtilsService $cardUtilsService,
+        private readonly AcquirerGatewayFactory $gatewayFactory,
     ) {
     }
 
     #[OA\Tag(name: 'Payment')]
-    #[Route('/payment/gateway/{gateway}', name: 'app_payment_gateway', methods: ['POST'])]
+    #[Route('/payment/gateway/{acquirer}', name: 'app_payment_gateway', methods: ['POST'])]
     #[OA\Post(
-        path: '/payment/gateway/{gateway}',
+        path: '/payment/gateway/{acquirer}',
         summary: 'Process a payment using Shift4 or ACI',
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(ref: new Model(type: PaymentGatewayInputDto::class))
+            content: new OA\JsonContent(ref: new Model(type: CardTransactionRequestDto::class))
         ),
         parameters: [
             new OA\Parameter(
-                name: 'gateway',
-                description: 'Payment gateway name (e.g., shift4, aci)',
+                name: 'acquirer',
+                description: 'Acquirer name (e.g., shift4, aci)',
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'string')
@@ -44,7 +44,7 @@ final class PaymentGatewayController extends AbstractController
             new OA\Response(
                 response: 200,
                 description: '',
-                content: new OA\JsonContent(ref: new Model(type: PaymentGatewayResponseDto::class))
+                content: new OA\JsonContent(ref: new Model(type: AcquirerResponseDto::class))
             ),
             new OA\Response(
                 response: 422,
@@ -53,14 +53,14 @@ final class PaymentGatewayController extends AbstractController
         ]
     )]
     public function index(
-        string $gateway,
+        string $acquirer,
         #[MapRequestPayload]
-        PaymentGatewayInputDto $paymentRequest
+        CardTransactionRequestDto $paymentRequest
     ): JsonResponse {
         try {
-            $paymentGateway = $this->gatewayFactory->get($gateway);
+            $paymentGateway = $this->gatewayFactory->get($acquirer);
 
-            if ($this->paymentGatewayService->isCardExpired(
+            if ($this->cardUtilsService->isCardExpired(
                 (int) $paymentRequest->cardExpMonth,
                 (int) $paymentRequest->cardExpYear)
             ) {
@@ -69,7 +69,7 @@ final class PaymentGatewayController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            $dto = $paymentGateway->processPayment($paymentRequest);
+            $dto = $paymentGateway->authorizeAndCapture($paymentRequest);
 
             return new JsonResponse([
                 'transactionId' => $dto->getTransactionId(),

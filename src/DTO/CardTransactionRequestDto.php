@@ -8,11 +8,11 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[OA\Schema(
-    schema: 'PaymentGatewayInputDto',
+    schema: 'CardTransactionRequestDto',
     title: 'Request payload',
     required: ['amount', 'currency', 'cardNumber', 'cardExpYear', 'cardExpMonth', 'cardCvv']
 )]
-class PaymentGatewayInputDto
+class CardTransactionRequestDto
 {
     #[Assert\Regex(
         pattern: '/^[0-9]{1,7}(\.[0-9]{2})?$/',

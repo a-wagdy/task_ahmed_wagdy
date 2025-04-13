@@ -37,6 +37,10 @@ class AciClient
 
         $data = json_decode($content, true);
 
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new PaymentProcessingException('Invalid JSON received from ACI acquirer');
+        }
+
         if (isset($data['result']['parameterErrors'])) {
             throw new PaymentProcessingException($data['result']['parameterErrors'][0]['name'] . ': ' . $data['result']['parameterErrors'][0]['message']);
         }

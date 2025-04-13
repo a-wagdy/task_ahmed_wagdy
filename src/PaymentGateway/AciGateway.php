@@ -6,23 +6,22 @@ namespace App\PaymentGateway;
 
 use DateTime;
 use App\Client\AciClient;
-use App\DTO\PaymentGatewayInputDto;
-use App\DTO\PaymentGatewayResponseDto;
-use App\Exception\PaymentProcessingException;
+use App\DTO\AcquirerResponseDto;
+use App\DTO\CardTransactionRequestDto;
 
-class AciGateway implements PaymentGatewayInterface
+class AciGateway implements AcquirerInterface
 {
     public function __construct(
         private readonly AciClient $client,
     ) {
     }
 
-    public static function getPaymentGatewayName(): string
+    public static function getAcquirerName(): string
     {
         return 'aci';
     }
 
-    public function processPayment(PaymentGatewayInputDto $dto): PaymentGatewayResponseDto
+    public function authorizeAndCapture(CardTransactionRequestDto $dto): AcquirerResponseDto
     {
         $paymentData = [
             'amount' => $dto->amount,
@@ -40,7 +39,7 @@ class AciGateway implements PaymentGatewayInterface
 
         $dateCreated = DateTime::createFromFormat('Y-m-d H:i:s.uO', $response['timestamp']);
 
-        return new PaymentGatewayResponseDto(
+        return new AcquirerResponseDto(
             currency: $response['currency'],
             transactionId: $response['id'],
             createdAt: $dateCreated->format('Y-m-d H:i:s'),
