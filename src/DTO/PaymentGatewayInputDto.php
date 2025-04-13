@@ -18,6 +18,7 @@ class PaymentGatewayInputDto
         pattern: '/^[0-9]{1,7}(\.[0-9]{2})?$/',
         message: 'The value must have 1-7 digits before the decimal point and exactly 2 digits after if a decimal point is present'
     )]
+    #[Assert\NotBlank]
     #[Assert\Positive]
     #[OA\Property(type: 'string', example: '100.00')]
     public string $amount;
